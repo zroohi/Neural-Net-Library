@@ -1,4 +1,4 @@
-#include "network.h"
+#include "src/network.h"
 #include <iostream>
 
 int main()
