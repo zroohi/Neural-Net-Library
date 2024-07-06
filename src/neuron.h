@@ -5,7 +5,7 @@
 #include <numeric>
 #include <stdexcept>
 #include <functional>
-#include "activation_functions.h"
+#include "support_functions.h"
 
 class Neuron
 {
@@ -61,6 +61,7 @@ class Neuron
         bool state;
         int numInputs;
         std::function<float(float)> f;
+        std::function<float(float)> df;
         std::vector<float> weights;
         
         

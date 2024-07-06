@@ -9,7 +9,10 @@ class NeuralNetwork
         /// @brief                 A neutal network that uses the neuron class for simple machine learning
         /// @param neuronsPerLayer Vector containing the number of neurons that should be in each layer of the network
         /// @param inputFunction   The activation function that should be used by all neurons
-        NeuralNetwork(std::vector<int> neuronsPerLayer, std::function<float(float)> inputFunction);
+        /// @param errorFunction   The function that should be used to calculate loss by all neurons
+        NeuralNetwork(std::vector<int> neuronsPerLayer,
+                      std::function<float(float)> inputFunction,
+                      std::function<float(std::vector<float>, std::vector<float>)> inputErrorFunction);
 
         /// @brief            Initializes the neural network to for a specific dataset, ensuring layers are correctly setup
         /// @param inputs     Vector containing the input dataset
@@ -26,6 +29,10 @@ class NeuralNetwork
         /// @brief  A single run through of the neural network
         /// @return Vector containing the data produced by the output layer
         std::vector<float> forward();
+
+        /// @brief  Propogates backward through the neural networks outputs, calculating the derivative at each point
+        /// @return The overall derivative
+        void backPropogate();
 
     private:
         /// @brief        Creates the input layer, which has no bias and doesn't alter data
@@ -46,6 +53,8 @@ class NeuralNetwork
         std::vector<std::vector<Neuron>> layers;
         std::vector<std::vector<float>> outputs;
         std::function<float(float)> activationFunction;
+        std::function<float(float, float)> errorFunctionDerivative;
+        std::function<float(std::vector<float>, std::vector<float>)> errorFunction;
         bool initialized;
 };
 

@@ -4,7 +4,6 @@ Neuron::Neuron()
                :
                weights(nullWeights),
                bias(nullBias),
-               f(ActivationFunctions::nullActivationFunction), 
                state(false)
 {
 }
@@ -16,6 +15,7 @@ Neuron::Neuron(std::function<float(float)> inputFunction)
                f(inputFunction), 
                state(false)
 {
+    this->df = ActivationFunctions::getDerivativeFunctionName(f);
 }
 
 Neuron::Neuron(std::vector<float> inputWeights, float inputBias, std::function<float(float)> inputFunction)
@@ -25,7 +25,8 @@ Neuron::Neuron(std::vector<float> inputWeights, float inputBias, std::function<f
                f(inputFunction),
                state(true)
 {
-    numInputs = weights.size();
+    this->numInputs = weights.size();
+    this->df = ActivationFunctions::getDerivativeFunctionName(f);
 }
 
 float Neuron::forward(std::vector<float> inputs)
@@ -76,6 +77,7 @@ void Neuron::setBias(float inputBias)
 void Neuron::setActivationFunction(std::function<float(float)> inputFunction)
 {
     this->f = inputFunction;
+    this->df = ActivationFunctions::getDerivativeFunctionName(f);
     isInitialized();
 }
 
@@ -85,7 +87,7 @@ bool Neuron::isInitialized()
     {
         return true;
     }
-    else if (weights == nullWeights || bias == nullBias || *f.target<float(float)>() == ActivationFunctions::nullActivationFunction)
+    else if (weights == nullWeights || bias == nullBias || !f)
     {
         this->state = false;
     }

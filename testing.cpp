@@ -5,10 +5,10 @@ int main()
 {
     // Create a neural network
     std::vector<int> layers = {2};
-    NeuralNetwork n(layers, ActivationFunctions::sigmoid);
+    NeuralNetwork n(layers, ActivationFunctions::sigmoid, LossFunctions::mse);
 
     // Initialize it with our data
-    std::vector<float> inputs = {2, 3};
+    std::vector<float> inputs = {-2, -1};
     int numOutputs = 1;
     n.initialize(inputs, numOutputs);
 

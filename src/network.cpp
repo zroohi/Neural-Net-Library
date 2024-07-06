@@ -1,9 +1,12 @@
 #include "network.h"
 
 
-NeuralNetwork::NeuralNetwork(std::vector<int> neuronsPerLayer, std::function<float(float)> inputFunction)
+NeuralNetwork::NeuralNetwork(std::vector<int> neuronsPerLayer,
+                             std::function<float(float)> inputFunction,
+                             std::function<float(std::vector<float>, std::vector<float>)> inputErrorFunction)
                              :
                              activationFunction(inputFunction),
+                             errorFunction(inputErrorFunction),
                              initialized(false)
 {
     // Resize the layers vector so that it can hold all of the input layers, and resize the outputs vector to hold all calculations
@@ -17,6 +20,9 @@ NeuralNetwork::NeuralNetwork(std::vector<int> neuronsPerLayer, std::function<flo
         layers[i + 1].resize(neuronsPerLayer[i]);
         outputs[i + 1].resize(neuronsPerLayer[i]);
     }
+
+    // Get the error function derivative
+    errorFunctionDerivative = LossFunctions::getDerivativeFunctionName(errorFunction);
 }
 
 void NeuralNetwork::initialize(std::vector<float> inputs, int numOutputs)
@@ -57,7 +63,7 @@ void NeuralNetwork::SetupHiddenLayers()
         for (int j = 0 ; j < layerSize ; j++)
         {
             // @TODO - Weights and bias should be generated randomly for every neuron with a size equal to the previous number of inputs
-            weights = {0, 1};
+            weights = {1, 1};
             bias = 0;
             layers[i][j] = Neuron(weights, bias, activationFunction);
         }
@@ -73,7 +79,7 @@ void NeuralNetwork::SetupOutputLayer(int numOutputs, std::function<float(float)>
     for (int i = 0 ; i < numOutputs ; i++)
     {
         // @TODO - Weights and bias should be generated randomly for every neuron with a size equal to the previous number of inputs
-        weights = {0, 1};
+        weights = {1, 1};
         bias = 0;
         outputLayer[i] = Neuron(weights, bias, outputFunction);
     }
@@ -98,4 +104,20 @@ std::vector<float> NeuralNetwork::forward()
     }
 
     return outputs.back();
+}
+
+void NeuralNetwork::backPropogate()
+{
+    float dLdW, dLdY, dYdH, dHdW;
+
+    // Calculate the loss derivative]
+    float correct = 1; //@TODO need to be using the correct value here
+    dLdY = errorFunctionDerivative(outputs.back()[0], correct); // @TODO - need to paramaterize this for multiple outputs
+
+    
+    // dy_pred / dh_x = the next neuron's weight for the value coming from the current neuron, multiplied by f'(the inputs and weights to this next neuron)
+    // dh_x / dw_x    = the input x_i times the derivative of the activation function, fed the inputs dotproduct + bias i.e. x_i * f'(x_i * w_i + ... + b)
+
+    dLdW = dLdY * dYdH * dHdW;
+    
 }
