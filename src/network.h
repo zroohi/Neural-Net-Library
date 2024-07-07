@@ -29,7 +29,7 @@ class NeuralNetwork
         void Initialize(std::vector<std::vector<double>> xData, std::vector<std::vector<double>> yData);
 
         /// @brief Runs through the neural network for all data in the set, back-propogates and then updates weights
-        void Run();
+        void Train();
 
     private:
         /// @brief        Creates the input layer, which has no bias and doesn't alter data
@@ -61,13 +61,13 @@ class NeuralNetwork
         int numOutputs;
         int numLayers;
         double cutoff;
+        double epochErr;
         double learningRate;
         std::vector<std::vector<Neuron>> layers;
-        std::vector<std::vector<double>> outputs;
         std::function<double(double)> activationFunction;
         std::vector<std::vector<double>> xData;
         std::vector<std::vector<double>> yData;
-        std::function<double(std::vector<double>, std::vector<double>)> errorFunctionDerivative;
+        std::function<double(double, double)> errorFunctionDerivative;
         std::function<double(std::vector<double>, std::vector<double>)> errorFunction;
         bool initialized;
 };

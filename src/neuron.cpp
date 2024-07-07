@@ -29,7 +29,7 @@ Neuron::Neuron(std::vector<double> inputWeights, double inputBias, std::function
     this->df = ActivationFunctions::GetDerivativeFunctionName(f);
 }
 
-double Neuron::Forward(std::vector<double> inputs)
+double Neuron::Forward(std::vector<Neuron> inputs)
 {
     // Verify the neuron is valid and has been initialized
     if (!state)
@@ -45,11 +45,11 @@ double Neuron::Forward(std::vector<double> inputs)
 
     // Calculate the dot product, add the bias, and call the activation function
     double prod = DotProduct(inputs, weights);
-    double output = GetActivationFunctionValue(prod + bias);
-    return output;
+    this->lastOutput = GetActivationFunctionValue(prod + bias);
+    return this->lastOutput;
 }
 
-double Neuron::Backward(std::vector<double> inputs)
+double Neuron::Backward(std::vector<Neuron> inputs)
 {
     // Verify the neuron is valid and has been initialized
     if (!state)
@@ -69,13 +69,13 @@ double Neuron::Backward(std::vector<double> inputs)
     return output;
 }
 
-double Neuron::DotProduct(std::vector<double> left, std::vector<double> right)
+double Neuron::DotProduct(std::vector<Neuron> left, std::vector<double> right)
 {
     double sum {0};
 
     for (int i = 0 ; i < numInputs ; i++)
     {
-        sum += left[i] * right[i];
+        sum += left[i].GetLastOutput() * right[i];
     }
 
     return sum;
@@ -158,4 +158,14 @@ bool Neuron::IsInitialized()
 
     return state;
 
+}
+
+double Neuron::GetLastOutput()
+{
+    return this->lastOutput;
+}
+
+void Neuron::SetOutput(double input)
+{
+    this->lastOutput = input;
 }

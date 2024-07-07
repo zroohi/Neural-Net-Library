@@ -37,10 +37,10 @@ namespace LossFunctions
     double mse(std::vector<double> predicted, std::vector<double> actual);
     double mae(std::vector<double> predicted, std::vector<double> actual);
 
-    double d_mse(std::vector<double> predicted, std::vector<double> actual);
-    double d_mae(std::vector<double> predicted, std::vector<double> actual);
+    double d_mse(double predicted, double actual);
+    double d_mae(double predicted, double actual);
 
-    std::function<double(std::vector<double>, std::vector<double>)> GetDerivativeFunctionName(std::function<double(std::vector<double>, std::vector<double>)> f);
+    std::function<double(double, double)> GetDerivativeFunctionName(std::function<double(std::vector<double>, std::vector<double>)> f);
 }
 
 #endif // SUPPORT_FUNCTIONS_H

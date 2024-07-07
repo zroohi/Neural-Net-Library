@@ -24,20 +24,20 @@ class Neuron
         Neuron(std::vector<double> inputWeights, double inputBias, std::function<double(double)> inputFunction = ActivationFunctions::linear);
 
         /// @brief        Calculates the output for a given set of inputs to a neuron
-        /// @param inputs Vector containing the inputs that should be fed to the neuron when doing a forward calculation
+        /// @param inputs Vector containing the input Neurons that should be fed to this neuron when doing a forward calculation
         /// @return       Output of this neuron, which is f(dotProduct + bias)
-        double Forward(std::vector<double> inputs);
+        double Forward(std::vector<Neuron> inputs);
 
         /// @brief        Calculates the output to the derivative for the activation function, which is needed for backwards propogation
-        /// @param inputs Vector containing the inputs that should be fed to the neuron when doing a backwards calculation
+        /// @param inputs Vector containing the input neurons that should be fed to this neuron when doing a backwards calculation
         /// @return       Output of this neuron, which is df(dotProduct + bias)
-        double Backward(std::vector<double> inputs);
+        double Backward(std::vector<Neuron> inputs);
 
         /// @brief       Calculates the dot product for two given vectors
         /// @param left  The left vector used to calculate the dot product
         /// @param right The right vector used to calculate the dot product 
         /// @return      The dot product
-        double DotProduct(std::vector<double> left, std::vector<double> right);
+        double DotProduct(std::vector<Neuron> left, std::vector<double> right);
 
         /// @brief         Initialize or set all of the weights on this neuron
         /// @param weights Vector of the weights that should be used for each input
@@ -83,6 +83,14 @@ class Neuron
         /// @brief  Checks if the neuron is fully setup, with weights, bias, and an activation function
         /// @return Boolean value representing if the neuron has been initalized or not
         bool IsInitialized();
+
+        /// @brief  Returns the last calculated value from this neuron
+        /// @return The last value calculated and output by this neuron
+        double GetLastOutput();
+
+        /// @brief       Set the output value of this neuron, which is needed for setting up input neurons
+        /// @param input The value to set this neuron's output to
+        void SetOutput(double input);
         
 
     private:
@@ -94,6 +102,7 @@ class Neuron
         double bias;
         bool state;
         int numInputs;
+        double lastOutput;
         std::function<double(double)> f;
         std::function<double(double)> df;
         std::vector<double> weights;

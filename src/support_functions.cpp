@@ -106,22 +106,9 @@ double LossFunctions::mse(std::vector<double> predicted, std::vector<double> act
     return sum;
 }
 
-double LossFunctions::d_mse(std::vector<double> predicted, std::vector<double> actual)
+double LossFunctions::d_mse(double predicted, double actual)
 {
-    if (predicted.size() != actual.size())
-    {
-        throw(std::invalid_argument("Size of the predicted and true value vectors must be the same."));
-    }
-
-    double sum = 0;
-    for (int i = 0 ; i < actual.size() ; i++)
-    {
-        sum += 2 * (predicted[i] - actual[i]);
-    }
-
-    // Find the mean
-    sum = sum / actual.size();
-    return sum;
+    return 2 * (predicted - actual);
 }
 
 double LossFunctions::mae(std::vector<double> predicted, std::vector<double> actual)
@@ -144,31 +131,19 @@ double LossFunctions::mae(std::vector<double> predicted, std::vector<double> act
 
 }
 
-double LossFunctions::d_mae(std::vector<double> predicted, std::vector<double> actual)
+double LossFunctions::d_mae(double predicted, double actual)
 {
-    if (predicted.size() != actual.size())
-    {
-        throw(std::invalid_argument("Size of the predicted and true value vectors must be the same."));
-    }
-
-     // Find the sum of the absolute difference
     double sum = 0;
-    for (int i = 0 ; i < actual.size() ; i++)
-    {
-        if (predicted[i] > actual[i]) { sum++; }
-        else if (predicted[i] < actual[i]) { sum--; }
-        else { /* Do nothing **/ }
-    }
-
-    // Find the mean
-    sum = sum / actual.size();
+    if (predicted > actual) { sum++; }
+    else if (predicted < actual) { sum--; }
+    else { /* Do nothing **/ }
     return sum;
 }
 
-std::function<double(std::vector<double>, std::vector<double>)> LossFunctions::GetDerivativeFunctionName(std::function<double(std::vector<double>, std::vector<double>)> f)
+std::function<double(double, double)> LossFunctions::GetDerivativeFunctionName(std::function<double(std::vector<double>, std::vector<double>)> f)
 {
     auto functionName = *f.target<double(*)(std::vector<double>, std::vector<double>)>();
-    std::function<double(std::vector<double>, std::vector<double>)> df;
+    std::function<double(double, double)> df;
     
     if      (functionName == LossFunctions::mse)  { df = LossFunctions::d_mse; }
     else if (functionName == LossFunctions::mae)  { df = LossFunctions::d_mae; }

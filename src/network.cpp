@@ -14,17 +14,15 @@ NeuralNetwork::NeuralNetwork(std::vector<int> neuronsPerLayer,
                              cutoff(inputCutoff),
                              initialized(false)
 {
-    // Resize the layers vector so that it can hold all of the input layers, and resize the outputs vector to hold all calculations
+    // Resize the layers vector so that it can hold all of the input layers
     // Note that the +2 is to account for both an input and output layer
     layers.resize(neuronsPerLayer.size() + 2);
-    outputs.resize(neuronsPerLayer.size() + 2);
     numLayers = layers.size();
 
     // Resize each of the individual layers
     for (int i = 0 ; i < neuronsPerLayer.size() ; i++)
     {
         layers[i + 1].resize(neuronsPerLayer[i]);
-        outputs[i + 1].resize(neuronsPerLayer[i]);
     }
 
     // Get the function derivatives
@@ -64,9 +62,7 @@ void NeuralNetwork::SetupHiddenLayers()
     {
         layerSize = layers[i].size();
         std::vector<Neuron> currentLayer(layerSize);
-        std::vector<double> currentOutputs(layerSize, 0);
         layers[i] = currentLayer;
-        outputs[i] = currentOutputs;
 
         for (int j = 0 ; j < layerSize ; j++)
         {
@@ -91,7 +87,6 @@ void NeuralNetwork::SetupOutputLayer()
         outputLayer[i] = Neuron(weights, bias, activationFunction);
     }
     layers.back() = outputLayer;
-    outputs.back() = std::vector<double>(numOutputs, 0);
 }
 
 double NeuralNetwork::GenerateRandomNumber()
@@ -106,81 +101,80 @@ double NeuralNetwork::GenerateRandomNumber()
 void NeuralNetwork::Forward(int currentIndex)
 {
     // Set the inputs
-    outputs[0] = xData[currentIndex];
+    for (int i = 0 ; i < layers[0].size() ; i++)
+    {
+        layers[0][i].SetOutput(yData[currentIndex][i]);
+    }
 
     // Run through the neural network, calculating the output for each layer
     for (int i = 1 ; i < layers.size() ; i++)
     {
         for (int j = 0 ; j < layers[i].size() ; j++)
         {
-            outputs[i][j] = layers[i][j].Forward(outputs[i - 1]);
+            layers[i][j].Forward(layers[i - 1]);
         }
     }
 }
 
 void NeuralNetwork::BackPropogate(int currentIndex)
 {
-        // Update the weights and bias for the output neuron
-        double dLdY, dYdW, dYdB;
-        dLdY = errorFunctionDerivative(outputs.back(), yData[currentIndex]);
-        for (Neuron& neuron : layers[numLayers - 1])
+    // Update the weights and bias for all layers
+    double dEdO, dOdN, dNdW, outputErrors;
+    for (int i = numLayers - 1 ; i > 0 ; i--)
+    {
+        for (int j = 0 ; j < layers[i].size() ; j++)
         {
-            dYdB = neuron.Backward(outputs[numLayers - 2]);
-            neuron.UpdateBias(learningRate * dLdY * dYdB);
-            for (int i = 0 ; i < neuron.GetNumWeights() ; i++)
-            {
-                dYdW = outputs[numLayers - 2][i] * dYdB;
-                neuron.UpdateOneWeight(learningRate * dLdY * dYdW, i);
-            }
-        }
-        
-        // Update the weights and biases for the hidden layer neurons
-        double dYdH, dHdB, dHdW;
-        for (int i = numLayers - 2 ; i > 0 ; i--)
-        {
-            for (int j = 0 ; j < layers[i].size() ; j++)
-            {
-                // Update this neuron's bias
-                dHdB = layers[i][j].Backward(outputs[i - 1]);
-                dYdH = layers[i + 1][0].GetWeights()[j] * layers[i + 1][0].Backward(outputs[i]);
-                // @TODO - what if there's more than one neuron in the next layer? aka the "0" above, what should it be?
-                //(weight from this neuron 0 to the next neuron 2) * Next Layers Neuron deriv_sigmoid(outputs[this layer])
-                layers[i][j].UpdateBias(learningRate * dLdY * dYdH * dHdB);
 
-                // Update this neuron's weights
-                for (int k = 0 ; k < layers[i][j].GetNumWeights() ; k++)
-                {
-                    dHdW = outputs[i - 1][k] * layers[i][j].Backward(outputs[i - 1]);
-                    layers[i][j].UpdateOneWeight(learningRate * dLdY * dYdH * dHdW, k);
-                }
+            // Calculate the output derivative with respect to the total net input (the derivative of the activation function)
+            dOdN = layers[i][j].Backward(layers[i - 1]);
+
+            // If this is an output neuron, calculate the loss derivative directly, otherwise use the sum of output neuron's loss
+            if (i == numLayers - 1)
+            {
+                dEdO = errorFunctionDerivative(layers[i][j].GetLastOutput(), yData[currentIndex][j]);
+                outputErrors += dEdO * dOdN;
+            }
+            else
+            {
+                dEdO = outputErrors * layers[i][j].Backward(layers[i - 1]);
+            }
+            
+            // Update the bias
+            layers[i][j].UpdateBias(learningRate * dEdO * dOdN);
+
+            // Calculate the weight derivative for each weight and then update that specific weight
+            for (int k = 0 ; k < layers[i][j].GetNumWeights() ; k++)
+            {  
+                dNdW = layers[i - 1][k].GetLastOutput();
+                layers[i][j].UpdateOneWeight(learningRate * dEdO * dOdN * dNdW, k);
             }
         }
+    }
+
+    // Calculate the final mean loss
+    epochErr = outputErrors / yData[currentIndex].size();
 }
 
-void NeuralNetwork::Run()
+void NeuralNetwork::Train()
 {
     if (!initialized)
     {
         throw(std::logic_error("Neural net is not initialized."));
     }
 
-    double err;
     for (int epoch = 1 ; epoch <= epochs ; epoch++)
     {
-        err = 0;
         for (int currentIndex = 0 ; currentIndex < xData.size() ; currentIndex++)
         {
             Forward(currentIndex);
             BackPropogate(currentIndex);
-            err += errorFunction(outputs.back(), yData[currentIndex]);
         }
 
-        err /= xData.size();
-        std::cout << "Epoch " << epoch << " Loss: " << err << std::endl;
+        std::cout << "Epoch " << epoch << " Loss: " << epochErr << std::endl;
 
-        if (err <= cutoff)
+        if (epochErr <= cutoff)
         {
-            std::cout << "Loss below cutoff level. Exiting early at epoch " << epoch << " with loss " << err << "" << std::endl;
+            std::cout << "Loss below cutoff level. Exiting early at epoch " << epoch << " with loss " << epochErr << "" << std::endl;
             break;
         }
     }
