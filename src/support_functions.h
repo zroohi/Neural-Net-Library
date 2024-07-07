@@ -7,7 +7,7 @@
 
 namespace ActivationFunctions
 {
-    /// @brief   Namespace to hold common types of activaction functions that a user can input when creating a neuron.
+    /// @brief   Namespace to hold common types of activaction functions that a user can input when creating a neuron or neural network.
     ///          Only simple activation functions requiring a single input are included. The function getDerivativeFunctionName()
     ///          returns the derivative for each function type.
     /// @param x The input value to the activation function
@@ -34,6 +34,13 @@ namespace ActivationFunctions
 
 namespace LossFunctions
 {
+    /// @brief           Namespace to hold common types of loss functions and their derivatives that a
+    ///                  user can input to the neural network class. The function getDerivativeFunctionName()
+    ///                  returns the derivative for each function type.
+    /// @param predicted Vector of values predicted by the neural network.
+    /// @param actual    Vector of actual values to compare the predicted ones with.
+    /// @return          The calculated loss.
+
     double mse(std::vector<double> predicted, std::vector<double> actual);
     double mae(std::vector<double> predicted, std::vector<double> actual);
 
