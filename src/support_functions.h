@@ -13,34 +13,34 @@ namespace ActivationFunctions
     /// @param x The input value to the activation function
     /// @return  The calculated function value
 
-    float binary(float x);
-    float linear(float x);
-    float sigmoid(float x);
-    float tanh(float x);
-    float relu(float x);
-    float lrelu(float x);
-    float elu(float x);
+    double binary(double x);
+    double linear(double x);
+    double sigmoid(double x);
+    double tanh(double x);
+    double relu(double x);
+    double lrelu(double x);
+    double elu(double x);
 
-    float d_binary(float x);
-    float d_linear(float x);
-    float d_sigmoid(float x);
-    float d_tanh(float x);
-    float d_relu(float x);
-    float d_lrelu(float x);
-    float d_elu(float x);
+    double d_binary(double x);
+    double d_linear(double x);
+    double d_sigmoid(double x);
+    double d_tanh(double x);
+    double d_relu(double x);
+    double d_lrelu(double x);
+    double d_elu(double x);
 
-    std::function<float(float)> getDerivativeFunctionName(std::function<float(float)> f);
+    std::function<double(double)> GetDerivativeFunctionName(std::function<double(double)> f);
 };
 
 namespace LossFunctions
 {
-    float mse(std::vector<float> predicted, std::vector<float> actual);
-    float mae(std::vector<float> predicted, std::vector<float> actual);
+    double mse(std::vector<double> predicted, std::vector<double> actual);
+    double mae(std::vector<double> predicted, std::vector<double> actual);
 
-    float d_mse(float actual, float predicted);
-    float d_mae(float actual, float predicted);
+    double d_mse(std::vector<double> predicted, std::vector<double> actual);
+    double d_mae(std::vector<double> predicted, std::vector<double> actual);
 
-    std::function<float(float, float)> getDerivativeFunctionName(std::function<float(std::vector<float>, std::vector<float>)> f);
+    std::function<double(std::vector<double>, std::vector<double>)> GetDerivativeFunctionName(std::function<double(std::vector<double>, std::vector<double>)> f);
 }
 
 #endif // SUPPORT_FUNCTIONS_H

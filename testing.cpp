@@ -8,13 +8,14 @@ int main()
     NeuralNetwork n(layers, ActivationFunctions::sigmoid, LossFunctions::mse);
 
     // Initialize it with our data
-    std::vector<float> inputs = {-2, -1};
+    std::vector<std::vector<double>> data_input = {{-2, -1}, {25, 6}, {17, 4}, {-15, -6}};
+    std::vector<std::vector<double>> data_output = {{1}, {0}, {0}, {1}};
+
     int numOutputs = 1;
-    n.initialize(inputs, numOutputs);
+    n.Initialize(data_input, data_output);
 
     // Run it once
-    auto a = n.forward();
-    for (auto b : a) { std::cout << b << std::endl; }
-    
+    n.Run();
+
     return 0;
 }

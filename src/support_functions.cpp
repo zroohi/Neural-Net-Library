@@ -1,79 +1,79 @@
 #include "support_functions.h"
 
-float ActivationFunctions::binary(float x)
+double ActivationFunctions::binary(double x)
 {
     return (x < 0) ? 0 : 1;
 }
 
-float ActivationFunctions::d_binary(float x)
+double ActivationFunctions::d_binary(double x)
 {
     return 0;
 }
 
-float ActivationFunctions::linear(float x)
+double ActivationFunctions::linear(double x)
 {
     return x;
 }
 
-float ActivationFunctions::d_linear(float x)
+double ActivationFunctions::d_linear(double x)
 {
     return 1;
 }
 
-float ActivationFunctions::sigmoid(float x)
+double ActivationFunctions::sigmoid(double x)
 {
     return 1 / (1 + exp(-x));
 }
 
-float ActivationFunctions::d_sigmoid(float x)
+double ActivationFunctions::d_sigmoid(double x)
 {
     return sigmoid(x) * (1 - sigmoid(x));
 }
 
-float ActivationFunctions::tanh(float x)
+double ActivationFunctions::tanh(double x)
 {
     return (exp(x) - exp(-x)) / (exp(x) + exp(-x));
 }
 
-float ActivationFunctions::d_tanh(float x)
+double ActivationFunctions::d_tanh(double x)
 {
     return 1 - tanh(x) * tanh(x);
 }
 
-float ActivationFunctions::relu(float x)
+double ActivationFunctions::relu(double x)
 {
     return (x > 0) ? x : 0;
 }
 
-float ActivationFunctions::d_relu(float x)
+double ActivationFunctions::d_relu(double x)
 {
     return (x > 0) ? 1 : 0;
 }
 
-float ActivationFunctions::lrelu(float x)
+double ActivationFunctions::lrelu(double x)
 {
     return (x > 0) ? x : 0.1 * x;
 }
 
-float ActivationFunctions::d_lrelu(float x)
+double ActivationFunctions::d_lrelu(double x)
 {
     return (x > 0) ? 1 : 0.1;
 }
 
-float ActivationFunctions::elu(float x)
+double ActivationFunctions::elu(double x)
 {
     return (x > 0) ? x : exp(-x) - 1;
 }
 
-float ActivationFunctions::d_elu(float x)
+double ActivationFunctions::d_elu(double x)
 {
     return (x > 0) ? x : - exp(-x);
 }
 
-std::function<float(float)> ActivationFunctions::getDerivativeFunctionName(std::function<float(float)> f)
+std::function<double(double)> ActivationFunctions::GetDerivativeFunctionName(std::function<double(double)> f)
 {
-    auto functionName = *f.target<float(float)>();
-    std::function<float(float)> df;
+    auto functionName = *f.target<double(*)(double)>();
+    std::function<double(double)> df;
     
     if      (functionName == ActivationFunctions::binary)  { df = ActivationFunctions::d_binary; }
     else if (functionName == ActivationFunctions::linear)  { df = ActivationFunctions::d_linear; }
@@ -87,7 +87,7 @@ std::function<float(float)> ActivationFunctions::getDerivativeFunctionName(std::
 }
 
 
-float LossFunctions::mse(std::vector<float> predicted, std::vector<float> actual)
+double LossFunctions::mse(std::vector<double> predicted, std::vector<double> actual)
 {
     if (predicted.size() != actual.size())
     {
@@ -95,7 +95,7 @@ float LossFunctions::mse(std::vector<float> predicted, std::vector<float> actual
     }
 
     // Find the sum of the squared difference
-    float sum = 0;
+    double sum = 0;
     for (int i = 0 ; i < actual.size() ; i++)
     {
         sum += (actual[i] - predicted[i]) * (actual[i] - predicted[i]);
@@ -103,24 +103,36 @@ float LossFunctions::mse(std::vector<float> predicted, std::vector<float> actual
 
     // Find the mean
     sum = sum / actual.size();
-    
     return sum;
 }
 
-float LossFunctions::d_mse(float actual, float predicted)
-{
-    return -2 * (actual - predicted);
-}
-
-float LossFunctions::mae(std::vector<float> predicted, std::vector<float> actual)
+double LossFunctions::d_mse(std::vector<double> predicted, std::vector<double> actual)
 {
     if (predicted.size() != actual.size())
     {
         throw(std::invalid_argument("Size of the predicted and true value vectors must be the same."));
     }
 
-     // Find the sum of the squared difference
-    float sum = 0;
+    double sum = 0;
+    for (int i = 0 ; i < actual.size() ; i++)
+    {
+        sum += 2 * (predicted[i] - actual[i]);
+    }
+
+    // Find the mean
+    sum = sum / actual.size();
+    return sum;
+}
+
+double LossFunctions::mae(std::vector<double> predicted, std::vector<double> actual)
+{
+    if (predicted.size() != actual.size())
+    {
+        throw(std::invalid_argument("Size of the predicted and true value vectors must be the same."));
+    }
+
+     // Find the sum of the absolute difference
+    double sum = 0;
     for (int i = 0 ; i < actual.size() ; i++)
     {
         sum += std::abs((actual[i] - predicted[i]));
@@ -128,20 +140,35 @@ float LossFunctions::mae(std::vector<float> predicted, std::vector<float> actual
 
     // Find the mean
     sum = sum / actual.size();
-    
     return sum;
 
 }
 
-float LossFunctions::d_mae(float actual, float predicted)
+double LossFunctions::d_mae(std::vector<double> predicted, std::vector<double> actual)
 {
-    return 0;
+    if (predicted.size() != actual.size())
+    {
+        throw(std::invalid_argument("Size of the predicted and true value vectors must be the same."));
+    }
+
+     // Find the sum of the absolute difference
+    double sum = 0;
+    for (int i = 0 ; i < actual.size() ; i++)
+    {
+        if (predicted[i] > actual[i]) { sum++; }
+        else if (predicted[i] < actual[i]) { sum--; }
+        else { /* Do nothing **/ }
+    }
+
+    // Find the mean
+    sum = sum / actual.size();
+    return sum;
 }
 
-std::function<float(float, float)> LossFunctions::getDerivativeFunctionName(std::function<float(std::vector<float>, std::vector<float>)> f)
+std::function<double(std::vector<double>, std::vector<double>)> LossFunctions::GetDerivativeFunctionName(std::function<double(std::vector<double>, std::vector<double>)> f)
 {
-    auto functionName = *f.target<float(std::vector<float>, std::vector<float>)>();
-    std::function<float(float, float)> df;
+    auto functionName = *f.target<double(*)(std::vector<double>, std::vector<double>)>();
+    std::function<double(std::vector<double>, std::vector<double>)> df;
     
     if      (functionName == LossFunctions::mse)  { df = LossFunctions::d_mse; }
     else if (functionName == LossFunctions::mae)  { df = LossFunctions::d_mae; }

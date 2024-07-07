@@ -8,17 +8,17 @@ Neuron::Neuron()
 {
 }
 
-Neuron::Neuron(std::function<float(float)> inputFunction)
+Neuron::Neuron(std::function<double(double)> inputFunction)
                :
                weights(nullWeights),
                bias(nullBias),
                f(inputFunction), 
                state(false)
 {
-    this->df = ActivationFunctions::getDerivativeFunctionName(f);
+    this->df = ActivationFunctions::GetDerivativeFunctionName(f);
 }
 
-Neuron::Neuron(std::vector<float> inputWeights, float inputBias, std::function<float(float)> inputFunction)
+Neuron::Neuron(std::vector<double> inputWeights, double inputBias, std::function<double(double)> inputFunction)
                :
                weights(inputWeights),
                bias(inputBias),
@@ -26,10 +26,10 @@ Neuron::Neuron(std::vector<float> inputWeights, float inputBias, std::function<f
                state(true)
 {
     this->numInputs = weights.size();
-    this->df = ActivationFunctions::getDerivativeFunctionName(f);
+    this->df = ActivationFunctions::GetDerivativeFunctionName(f);
 }
 
-float Neuron::forward(std::vector<float> inputs)
+double Neuron::Forward(std::vector<double> inputs)
 {
     // Verify the neuron is valid and has been initialized
     if (!state)
@@ -44,14 +44,34 @@ float Neuron::forward(std::vector<float> inputs)
     }
 
     // Calculate the dot product, add the bias, and call the activation function
-    float prod = dotProduct(inputs, weights);
-    float output = f(prod + bias);
+    double prod = DotProduct(inputs, weights);
+    double output = GetActivationFunctionValue(prod + bias);
     return output;
 }
 
-float Neuron::dotProduct(std::vector<float> left, std::vector<float> right)
+double Neuron::Backward(std::vector<double> inputs)
 {
-    float sum {0};
+    // Verify the neuron is valid and has been initialized
+    if (!state)
+    {
+        throw std::logic_error("Neuron is not initialized!");
+    }
+
+    // Verify the size of the input values is the same as the weights of this neuron
+    if (inputs.size() != numInputs)
+    {
+        throw std::invalid_argument("Neuron input vector length must match weights vector length.");
+    }
+
+    // Calculate the dot product, add the bias, and call the activation function
+    double prod = DotProduct(inputs, weights);
+    double output = GetActivationFunctionDerivativeValue(prod + bias);
+    return output;
+}
+
+double Neuron::DotProduct(std::vector<double> left, std::vector<double> right)
+{
+    double sum {0};
 
     for (int i = 0 ; i < numInputs ; i++)
     {
@@ -61,27 +81,67 @@ float Neuron::dotProduct(std::vector<float> left, std::vector<float> right)
     return sum;
 }
 
-void Neuron::setWeights(std::vector<float> inputWeights)
+void Neuron::SetWeights(std::vector<double> inputWeights)
 {
     this->weights = inputWeights;
     this->numInputs = weights.size();
-    isInitialized();
+    IsInitialized();
 }
 
-void Neuron::setBias(float inputBias)
+void Neuron::UpdateOneWeight(double delta, int indexOfWeight)
+{
+    if (indexOfWeight >= weights.size())
+    {
+        throw(std::invalid_argument("Weight index is out of bounds"));
+    }
+
+    this->weights[indexOfWeight] -= delta;
+}
+
+std::vector<double> Neuron::GetWeights()
+{
+    return this->weights;
+}
+
+int Neuron::GetNumWeights()
+{
+    return this->numInputs;
+}
+
+double Neuron::GetBias()
+{
+    return this->bias;
+}
+
+void Neuron::SetBias(double inputBias)
 {
     this->bias = inputBias;
-    isInitialized();
+    IsInitialized();
 }
 
-void Neuron::setActivationFunction(std::function<float(float)> inputFunction)
+void Neuron::UpdateBias(double delta)
+{
+    this->bias -= delta;
+}
+
+void Neuron::SetActivationFunction(std::function<double(double)> inputFunction)
 {
     this->f = inputFunction;
-    this->df = ActivationFunctions::getDerivativeFunctionName(f);
-    isInitialized();
+    this->df = ActivationFunctions::GetDerivativeFunctionName(f);
+    IsInitialized();
 }
 
-bool Neuron::isInitialized()
+double Neuron::GetActivationFunctionValue(double input)
+{
+    return this->f(input);
+}
+
+double Neuron::GetActivationFunctionDerivativeValue(double input)
+{
+    return this->df(input);
+}  
+
+bool Neuron::IsInitialized()
 {
     if (state)
     {

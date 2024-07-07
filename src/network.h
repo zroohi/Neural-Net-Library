@@ -1,43 +1,37 @@
 #ifndef NETWORK_H
 #define NETWORK_H
 
+#include <iostream>
+#include <random>
+
 #include "neuron.h"
 
 class NeuralNetwork
 {
     public:
-        /// @brief                 A neutal network that uses the neuron class for simple machine learning
-        /// @param neuronsPerLayer Vector containing the number of neurons that should be in each layer of the network
-        /// @param inputFunction   The activation function that should be used by all neurons
-        /// @param errorFunction   The function that should be used to calculate loss by all neurons
+        /// @brief                   A neutal network that uses the neuron class for simple machine learning
+        /// @param neuronsPerLayer   Vector containing the number of neurons that should be in each layer of the network
+        /// @param inputFunction     The activation function that should be used by all neurons
+        /// @param errorFunction     The function that should be used to calculate loss by all neurons
+        /// @param inputEpochs       The number of epochs to train for
+        /// @param inputLearningRate The factor that should be used when calculating gradient decent
         NeuralNetwork(std::vector<int> neuronsPerLayer,
-                      std::function<float(float)> inputFunction,
-                      std::function<float(std::vector<float>, std::vector<float>)> inputErrorFunction);
+                      std::function<double(double)> inputFunction,
+                      std::function<double(std::vector<double>, std::vector<double>)> inputErrorFunction,
+                      int epochs = 1000,
+                      double inputLearningRate = 0.01);
 
-        /// @brief            Initializes the neural network to for a specific dataset, ensuring layers are correctly setup
-        /// @param inputs     Vector containing the input dataset
-        /// @param numOutputs Number of outputs that should be calculated from this input dataset
-        void initialize(std::vector<float> inputs, int numOutputs);
+        /// @brief       Initializes the neural network to for a specific dataset, ensuring layers are correctly setup
+        /// @param xData Vector containing vectors with all of the input data
+        /// @param yData Vector containing vectors with all of the output data that this model should predict
+        void Initialize(std::vector<std::vector<double>> xData, std::vector<std::vector<double>> yData);
 
-        /// @brief                Initializes the neural network, but allows the users to specify a different activation
-        ///                       function for the output layer of neurons   
-        /// @param inputs         Vector containing the input dataset
-        /// @param numOutputs     Number of outputs that should be calculated from this input dataset
-        /// @param outputFunction The activation function that should be used by all neurons
-        void initialize(std::vector<float> inputs, int numOutputs, std::function<float(float)> outputFunction);
-
-        /// @brief  A single run through of the neural network
-        /// @return Vector containing the data produced by the output layer
-        std::vector<float> forward();
-
-        /// @brief  Propogates backward through the neural networks outputs, calculating the derivative at each point
-        /// @return The overall derivative
-        void backPropogate();
+        /// @brief Runs through the neural network for all data in the set, back-propogates and then updates weights
+        void Run();
 
     private:
         /// @brief        Creates the input layer, which has no bias and doesn't alter data
-        /// @param inputs Vector containing the input data
-        void SetupInputLayer(std::vector<float> inputs);
+        void SetupInputLayer();
 
         /// @brief Creates all of the hidden layers and hidden neurons, and sets up the output vector to track
         ///        data produced by these neurons during each run. Note that weights and biases are randomly
@@ -45,16 +39,33 @@ class NeuralNetwork
         void SetupHiddenLayers();
 
         /// @brief                Creates the output layer of the neural net
-        /// @param numOutputs     Number of output neurons in this layer
-        /// @param outputFunction Activation function that should be used for the output layer
-        void SetupOutputLayer(int numOutputs, std::function<float(float)> outputFunction);
+        void SetupOutputLayer();
+
+        /// @brief              A single run through of the neural network
+        /// @param currentIndex Row index of the data being trained on
+        void Forward(int currentIndex);
+
+        /// @brief  Propogates backward through the neural networks outputs, calculating the derivative at each point
+        /// @param currentIndex Row index of the yData that results should be compared with
+        void BackPropogate(int currentIndex);
+
+        /// @brief  Generates a random number to be used when initializing biases and weights
+        /// @return Randomly generated number
+        double GenerateRandomNumber();
 
         /// Attributes of the neural network
+        int epochs;
+        int numInputs;
+        int numOutputs;
+        int numLayers;
+        double learningRate;
         std::vector<std::vector<Neuron>> layers;
-        std::vector<std::vector<float>> outputs;
-        std::function<float(float)> activationFunction;
-        std::function<float(float, float)> errorFunctionDerivative;
-        std::function<float(std::vector<float>, std::vector<float>)> errorFunction;
+        std::vector<std::vector<double>> outputs;
+        std::function<double(double)> activationFunction;
+        std::vector<std::vector<double>> xData;
+        std::vector<std::vector<double>> yData;
+        std::function<double(std::vector<double>, std::vector<double>)> errorFunctionDerivative;
+        std::function<double(std::vector<double>, std::vector<double>)> errorFunction;
         bool initialized;
 };
 
