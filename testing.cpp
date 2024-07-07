@@ -5,7 +5,10 @@ int main()
 {
     // Create a neural network
     std::vector<int> layers = {2};
-    NeuralNetwork n(layers, ActivationFunctions::sigmoid, LossFunctions::mse);
+    int epochs = 1000000;
+    double learningRate = 0.01;
+    double cutoff = 0.00001;
+    NeuralNetwork n(layers, ActivationFunctions::sigmoid, LossFunctions::mse, epochs, learningRate, cutoff);
 
     // Initialize it with our data
     std::vector<std::vector<double>> data_input = {{-2, -1}, {25, 6}, {17, 4}, {-15, -6}};
@@ -19,3 +22,8 @@ int main()
 
     return 0;
 }
+
+// TODO
+// Figure out how to correctly deal with the single output layer weight updating, it should be for multiple outputs etc.
+// Save and open neural net weights
+// Import an entire excel spreadsheet and run it through

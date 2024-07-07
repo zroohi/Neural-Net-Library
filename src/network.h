@@ -15,11 +15,13 @@ class NeuralNetwork
         /// @param errorFunction     The function that should be used to calculate loss by all neurons
         /// @param inputEpochs       The number of epochs to train for
         /// @param inputLearningRate The factor that should be used when calculating gradient decent
+        /// @param inputCutoff       When loss falls below this point, the model will exit early. Defaults to never exiting early
         NeuralNetwork(std::vector<int> neuronsPerLayer,
                       std::function<double(double)> inputFunction,
                       std::function<double(std::vector<double>, std::vector<double>)> inputErrorFunction,
                       int epochs = 1000,
-                      double inputLearningRate = 0.01);
+                      double inputLearningRate = 0.01,
+                      double inputCutoff = 0.0);
 
         /// @brief       Initializes the neural network to for a specific dataset, ensuring layers are correctly setup
         /// @param xData Vector containing vectors with all of the input data
@@ -58,6 +60,7 @@ class NeuralNetwork
         int numInputs;
         int numOutputs;
         int numLayers;
+        double cutoff;
         double learningRate;
         std::vector<std::vector<Neuron>> layers;
         std::vector<std::vector<double>> outputs;

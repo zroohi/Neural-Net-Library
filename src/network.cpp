@@ -4,12 +4,14 @@ NeuralNetwork::NeuralNetwork(std::vector<int> neuronsPerLayer,
                              std::function<double(double)> inputFunction,
                              std::function<double(std::vector<double>, std::vector<double>)> inputErrorFunction,
                              int inputEpochs,
-                             double inputLearningRate)
+                             double inputLearningRate,
+                             double inputCutoff)
                              :
                              activationFunction(inputFunction),
                              errorFunction(inputErrorFunction),
                              learningRate(inputLearningRate),
                              epochs(inputEpochs),
+                             cutoff(inputCutoff),
                              initialized(false)
 {
     // Resize the layers vector so that it can hold all of the input layers, and resize the outputs vector to hold all calculations
@@ -97,7 +99,7 @@ double NeuralNetwork::GenerateRandomNumber()
     // Setup and seed the random number generator
     std::random_device seed;
     std::mt19937 generator(seed());
-    std::uniform_int_distribution<int> distribution(-100, 100);
+    std::uniform_int_distribution<int> distribution(-5, 5);
     return distribution(generator);
 }
 
@@ -172,8 +174,14 @@ void NeuralNetwork::Run()
             BackPropogate(currentIndex);
             err += errorFunction(outputs.back(), yData[currentIndex]);
         }
-        std::cout << "Epoch " << epoch << " Loss : " << err / xData.size() << std::endl;
+
+        err /= xData.size();
+        std::cout << "Epoch " << epoch << " Loss: " << err << std::endl;
+
+        if (err <= cutoff)
+        {
+            std::cout << "Loss below cutoff level. Exiting early at epoch " << epoch << " with loss " << err << "" << std::endl;
+            break;
+        }
     }
-
-
 }
