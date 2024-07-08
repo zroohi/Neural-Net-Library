@@ -7,15 +7,15 @@ NeuralNetwork::NeuralNetwork(std::vector<int> neuronsPerLayer,
                              double inputLearningRate,
                              double inputCutoff)
                              :
-                             activationFunction(inputFunction),
+                             actFunction(inputFunction),
                              errorFunction(inputErrorFunction),
                              learningRate(inputLearningRate),
                              epochs(inputEpochs),
                              cutoff(inputCutoff),
-                             initialized(false)
+                             initialized(false),
+                             outputActFunction(ActivationFunctions::linear)
 {
-    // Resize the layers vector so that it can hold all of the input layers
-    // Note that the +2 is to account for both an input and output layer
+    // Resize the layers vector so that it can hold the input and output layers
     layers.resize(neuronsPerLayer.size() + 2);
     numLayers = layers.size();
 
@@ -27,6 +27,34 @@ NeuralNetwork::NeuralNetwork(std::vector<int> neuronsPerLayer,
 
     // Get the function derivatives
     errorFunctionDerivative = LossFunctions::GetDerivativeFunctionName(errorFunction);
+}
+
+void NeuralNetwork::ChangeHiddenLayerActivationFunction(std::function<double(double)> inputFunction, int layerIndex)
+{
+    if (!initialized)
+    {
+        throw(std::logic_error("The activation function for hidden layers can only be changed after initialization"));
+    }
+    
+    for (Neuron& neuron : layers[layerIndex])
+    {
+        neuron.SetActivationFunction(inputFunction);
+    }
+}
+
+void NeuralNetwork::SetOutputActivationFunction(std::function<double(double)> inputFunction)
+{
+    if (initialized)
+    {
+        for (Neuron& neuron : layers.back())
+        {
+            neuron.SetActivationFunction(inputFunction);
+        }
+    }
+    else
+    {
+        this->outputActFunction = inputFunction;
+    }
 }
 
 void NeuralNetwork::Initialize(std::vector<std::vector<double>> xDataInput, std::vector<std::vector<double>> yDataInput)
@@ -48,7 +76,7 @@ void NeuralNetwork::Initialize(std::vector<std::vector<double>> xDataInput, std:
 
 void NeuralNetwork::SetupInputLayer()
 {
-    Neuron unweightedNeuron({1}, 0);
+    Neuron unweightedNeuron({1}, 0, ActivationFunctions::linear);
     std::vector<Neuron> inputLayer(numInputs, unweightedNeuron);
     layers[0] = inputLayer;
 }
@@ -69,7 +97,7 @@ void NeuralNetwork::SetupHiddenLayers()
             std::vector<double> weights(layers[i - 1].size());
             for (auto& w : weights) { w =  GenerateRandomNumber(); }
             bias = GenerateRandomNumber();
-            layers[i][j] = Neuron(weights, bias, activationFunction);
+            layers[i][j] = Neuron(weights, bias, actFunction);
         }
     }
 }
@@ -84,7 +112,7 @@ void NeuralNetwork::SetupOutputLayer()
         std::vector<double> weights(layers[numLayers - 2].size());
         for (auto& w : weights) { w =  GenerateRandomNumber(); }
         bias = GenerateRandomNumber();
-        outputLayer[i] = Neuron(weights, bias, activationFunction);
+        outputLayer[i] = Neuron(weights, bias, outputActFunction);
     }
     layers.back() = outputLayer;
 }
@@ -152,7 +180,7 @@ void NeuralNetwork::BackPropogate(int currentIndex)
     }
 
     // Calculate the final mean loss
-    epochErr = outputErrors / yData[currentIndex].size();
+    epochErr = std::abs(outputErrors / yData[currentIndex].size());
 }
 
 void NeuralNetwork::Train()

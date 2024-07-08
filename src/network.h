@@ -9,7 +9,8 @@
 class NeuralNetwork
 {
     public:
-        /// @brief                   A neutal network that uses the neuron class for simple machine learning
+        /// @brief                   Neural network constructor that uses the neuron class for simple machine learning, and requires the
+        ///                          user to input a single activation function that will be used by every neuron and every layer.
         /// @param neuronsPerLayer   Vector containing the number of neurons that should be in each layer of the network
         /// @param inputFunction     The activation function that should be used by all neurons
         /// @param errorFunction     The function that should be used to calculate loss by all neurons
@@ -22,6 +23,16 @@ class NeuralNetwork
                       int epochs = 1000,
                       double inputLearningRate = 0.01,
                       double inputCutoff = 0.0);
+
+        /// @brief               Allows the user to set the activation function for all neurons in the output
+        ///                      layer. If not set, they default to linear.
+        /// @param inputFunction The activation function that should be used for all output neurons
+        void SetOutputActivationFunction(std::function<double(double)> inputFunction);
+        
+        /// @brief               Allows the user to change the activation function for all neurons in a specific
+        ///                      hidden layer. Can only be done after initialization.
+        /// @param inputFunction The activation function that should be used for all neurons in this hidden layer
+        void ChangeHiddenLayerActivationFunction(std::function<double(double)> inputFunction, int layerIndex);
 
         /// @brief       Initializes the neural network to for a specific dataset, ensuring layers are correctly setup
         /// @param xData Vector containing vectors with all of the input data
@@ -64,7 +75,8 @@ class NeuralNetwork
         double epochErr;
         double learningRate;
         std::vector<std::vector<Neuron>> layers;
-        std::function<double(double)> activationFunction;
+        std::function<double(double)> actFunction;
+        std::function<double(double)> outputActFunction;
         std::vector<std::vector<double>> xData;
         std::vector<std::vector<double>> yData;
         std::function<double(double, double)> errorFunctionDerivative;

@@ -106,9 +106,6 @@ class Neuron
         std::function<double(double)> f;
         std::function<double(double)> df;
         std::vector<double> weights;
-        
-        
-        
 };
 
 #endif // NEURON_H
